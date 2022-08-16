@@ -19,6 +19,11 @@ namespace BetterConsole.Mod.IPC
   /// </remarks>
   public class Client : IDisposable
   {
+    /// <summary>
+    /// Max log lines in the queue after which they will be discarded.
+    /// </summary>
+    private const int MaxQueue = 250;
+
     private static Client _instance;
     public static Client Instance => _instance ??= new();
 
@@ -41,6 +46,10 @@ namespace BetterConsole.Mod.IPC
     public void ReportLog(string text)
     {
       LogQueue.Enqueue(text);
+      if (LogQueue.Count > MaxQueue)
+      {
+        LogQueue.TryDequeue(out _);
+      }
     }
 
     public void Dispose()
