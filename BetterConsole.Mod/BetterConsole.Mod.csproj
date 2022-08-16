@@ -27,8 +27,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="H.Formatters.Newtonsoft.Json" Version="12.0.38" />
-    <PackageReference Include="H.Pipes" Version="2.0.38" />
   </ItemGroup>
 
   <ItemGroup>

@@ -22,7 +22,7 @@ namespace BetterConsole.Mod
         Harmony = new Harmony(modEntry.Info.Id);
         Harmony.PatchAll();
 
-        Client.Instance.InitializeAsync().GetAwaiter().GetResult();
+        Client.Instance.Initialize();
 
         Logger.Log("Finished patching.");
       }

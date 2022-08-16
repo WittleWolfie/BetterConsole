@@ -1,57 +1,99 @@
-﻿using BetterConsole.Common;
-using H.Formatters;
-using H.Pipes;
-using System;
-using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.ComponentModel;
+using System.IO;
+using System.IO.Pipes;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace BetterConsole.Mod.IPC
 {
   public class Client : IDisposable
   {
+    // Shared name between Client & Server
+    private const string PipeName = "BetterConsole.Pipe";
+
     private static Client _instance;
-    public static Client Instance => _instance ??= new Client();
+    public static Client Instance => _instance ??= new();
 
-    private PipeClient<PipeMessage> BackingClient;
+    private bool Enabled = true;
+    private NamedPipeClientStream Stream;
+    private Thread Thread;
+    private readonly ConcurrentQueue<string> LogQueue = new();
 
-    public async Task InitializeAsync()
+    public void Initialize()
     {
-      if (BackingClient is not null && BackingClient.IsConnected) { return; }
+      if (Stream is not null) { return; }
 
+
+      Stream = new(PipeName);
+      Thread = new Thread(new ThreadStart(InitializeAsync));
+      Thread.Start();
+    }
+
+    private void InitializeAsync()
+    {
       Main.Logger.Log("Initiating mod connection.");
-
-      BackingClient = new(PipeMessage.PipeName, formatter: new NewtonsoftJsonFormatter());
-      BackingClient.Disconnected += (o, args) => Main.Logger.Log("Disconnected from server.");
-      BackingClient.Connected += (o, args) => Main.Logger.Log("Connected to server.");
-      BackingClient.ExceptionOccurred += (o, args) => OnException(args.Exception);
-
-      await BackingClient.ConnectAsync();
-
-      Main.Logger.Log("Mod connection established.");
-      SendText("Mod connection established.");
-    }
-
-    public async void SendText(string text)
-    {
-      await BackingClient.WriteAsync(new()
+      while (Enabled)
       {
-        Action = ActionType.SendText,
-        Text = text
-      });
+
+        try
+        {
+          Stream.Connect();
+
+          Main.Logger.Log("Mod connection established.");
+          ReportLog("Mod connection established.");
+
+          WriteStream();
+        }
+        catch (Win32Exception)
+        {
+          // No server available
+          Thread.Sleep(5000);
+        }
+        catch (Exception e)
+        {
+          Main.Logger.LogException("Error while connecting to BetterConsole.", e);
+          break;
+        }
+      }
     }
 
-    private void OnException(Exception e)
+    private void WriteStream()
     {
-      Main.Logger.LogException("PipeClient triggered an exception.", e);
+      using (var writer = new StreamWriter(Stream))
+      {
+        string line = null;
+        while (Enabled && Stream.IsConnected)
+        {
+          if (LogQueue.Any() && LogQueue.TryDequeue(out line))
+          {
+            writer.WriteLine(line);
+            writer.Flush();
+            Main.Logger.Log($"Wrote line: {line}");
+          }
+          else
+          {
+            Main.Logger.Log("Waitin'");
+            // Wait for more messages
+            Thread.Sleep(1000);
+          }
+        }
+      }
+    }
+
+    public void ReportLog(string text)
+    {
+      LogQueue.Enqueue(text);
     }
 
     public void Dispose()
     {
-      if (BackingClient is not null)
+      Enabled = false;
+      Stream?.Dispose();
+      if ((bool)(Thread?.IsAlive))
       {
-        BackingClient.DisposeAsync().GetAwaiter().GetResult();
+        Thread.Abort();
       }
     }
   }

@@ -30,12 +30,6 @@
                 HorizontalOptions="Center" />
 
             <Button
-                x:Name="StartBtn"
-                Text="Start"
-                Clicked="OnStartService"
-                HorizontalOptions="Center" />
-
-            <Button
                 x:Name="StopBtn"
                 Text="Stop"
                 Clicked="OnStopService"

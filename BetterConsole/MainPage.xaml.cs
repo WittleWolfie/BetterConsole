@@ -6,20 +6,17 @@ namespace BetterConsole
   {
     public ContentViewModel ViewModel => (ContentViewModel)BindingContext;
 
+
     public MainPage()
     {
       InitializeComponent();
       BindingContext = new ContentViewModel();
-    }
-
-    private void OnStartService(object sender, EventArgs e)
-    {
-      ServiceHost.Run(this);
+      Server.Instance.Initialize(ViewModel);
     }
 
     private void OnStopService(object sender, EventArgs e)
     {
-      ServiceHost.Abort();
+      Server.Instance.Dispose();
     }
   }
 }
