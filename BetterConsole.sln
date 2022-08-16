@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterConsole.Common", "Bet
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterConsole.TestApp", "BetterConsole.TestApp\BetterConsole.TestApp.csproj", "{369B9D67-2493-4A21-B688-CC7DCB2414E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterConsole", "BetterConsole\BetterConsole.csproj", "{E03DF1E1-E995-4C1D-B9B8-6A1B9B2408F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterConsole", "BetterConsole\BetterConsole.csproj", "{E03DF1E1-E995-4C1D-B9B8-6A1B9B2408F7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ADB5762A-39C5-4420-8986-5A5E6E4ADFF3}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
