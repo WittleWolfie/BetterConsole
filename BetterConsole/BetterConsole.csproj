@@ -47,8 +47,4 @@
 	  <PackageReference Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\BetterConsole.Common\BetterConsole.Common.csproj" />
-	</ItemGroup>
-
 </Project>
