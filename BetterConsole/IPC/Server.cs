@@ -2,11 +2,17 @@
 
 namespace BetterConsole.IPC
 {
+  /// <summary>
+  /// Server for BetterConsole. BetterConsole.Mod acts as a client sending log events.
+  /// </summary>
+  /// 
+  /// <remarks>
+  /// Originally I tried to use H.Pipes which provides a wrapper for easier use. Unfortunately it is built entirely
+  /// on async pipes which is not supported in Unity. Now it's using RawPipes though converting to JSON would be easy
+  /// if needed.
+  /// </remarks>
   public class Server : IDisposable
   {
-    // Shared name between Client & Server
-    private const string PipeName = "BetterConsole.Pipe";
-
     private static Server _instance;
     public static Server Instance => _instance ??= new();
 
@@ -20,23 +26,23 @@ namespace BetterConsole.IPC
       ViewModel = viewModel;
       if (Stream is not null) { return; }
 
-      Stream = new(PipeName);
       Thread = new Thread(new ThreadStart(InitializeAsync));
       Thread.Start();
     }
 
+    /// <summary>
+    /// Since async pipes aren't available just loop waiting for input in a thread. This is the outer loop which
+    /// connects and reconnects, ReadStream is the inner loop which reads input.
+    /// </summary>
     private void InitializeAsync()
     {
-      ViewModel.Status = "Waiting for client connection.";
       while (Enabled)
       {
-        if (!Stream.IsConnected)
-        {
-          Stream.Dispose();
-          Stream = new(PipeName);
-          Stream.WaitForConnection();
-          ViewModel.Status = "Client connected.";
-        }
+        Stream?.Dispose();
+        ViewModel.Status = "Waiting for client connection.";
+        Stream = new(Contract.PipeName);
+        Stream.WaitForConnection();
+        ViewModel.Status = "Client connected.";
 
         ReadStream();
       }
@@ -55,7 +61,7 @@ namespace BetterConsole.IPC
             // Wait for more messages
             Thread.Sleep(1000);
           }
-          else
+          else if (!line.StartsWith(Contract.ControlPrefix))
           {
             ViewModel.Message = line;
           }
