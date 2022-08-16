@@ -23,6 +23,7 @@ namespace BetterConsole.Mod
         Harmony.PatchAll();
 
         Client.Instance.Initialize();
+        Owlcat.Runtime.Core.Logging.Logger.Instance.AddLogger(new ConsoleLogSink());
 
         Logger.Log("Finished patching.");
       }

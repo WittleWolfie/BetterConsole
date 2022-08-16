@@ -42,6 +42,9 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(WrathPath)\Wrath_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Owlcat.Runtime.Core.dll">
+      <HintPath>$(WrathPath)\Wrath_Data\Managed\Owlcat.Runtime.Core.dll</HintPath>
+    </Reference>
 
     <!-- UMM & Harmony -->
     <Reference Include="0Harmony">
