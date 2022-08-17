@@ -1,15 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BetterConsole.IPC
+namespace BetterConsole.Common
 {
   /// <summary>
-  /// Should be identical to Contract.cs in BetterConsole.Mod. Holds common constants.
+  /// API for pipe IPC between BetterConsole and BetterConsole.Mod.
   /// </summary>
-  public static class Contract
+  public class PipeContract
   {
     public const string PipeName = "BetterConsole.Pipe";
 
@@ -18,9 +15,16 @@ namespace BetterConsole.IPC
     /// </summary>
     public struct LogMessage
     {
+      [JsonProperty]
       public bool Control;
+
+      [JsonProperty]
       public string ChannelName;
+
+      [JsonProperty]
       public string Severity;
+
+      [JsonProperty]
       public List<string> Message;
     }
   }

@@ -43,6 +43,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="System.ServiceProcess.ServiceController" Version="6.0.0" />
+	  <ProjectReference Include="..\BetterConsole.Common\BetterConsole.Common.csproj" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>$(WrathPath)\Wrath_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>

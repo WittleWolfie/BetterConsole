@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.IO.Pipes;
-using static BetterConsole.IPC.Contract;
+using static BetterConsole.Common.PipeContract;
 
 namespace BetterConsole.IPC
 {
@@ -45,7 +44,7 @@ namespace BetterConsole.IPC
       {
         Stream?.Dispose();
         ViewModel.Status = "Waiting for client connection.";
-        Stream = new(Contract.PipeName);
+        Stream = new(PipeName);
         Stream.WaitForConnection();
         ViewModel.Status = "Client connected.";
 
@@ -55,29 +54,29 @@ namespace BetterConsole.IPC
 
     private void ReadStream()
     {
-      using (var reader = new StreamReader(Stream))
+      using (var reader = new BinaryReader(Stream))
       {
         LogMessage message = new();
         while (Enabled && Stream.IsConnected)
         {
           try
           {
-            var result = reader.ReadLine();
-            if (!string.IsNullOrEmpty(result))
+            message = JsonConvert.DeserializeObject<LogMessage>(reader.ReadString());
+            if (message.Control)
             {
-              ViewModel.Message = result;
+              // Ignore control messages
+              continue;
             }
+
             if (message.Message is not null && message.Message.Any())
             {
               ViewModel.Message = message.Message.First();
             }
-            else if (!message.Control) // Ignore control messages
-            {
-              // Wait for more messages
-              Thread.Sleep(1000);
-            }
           }
-          catch (Exception) { } // Squash exceptions for now, may report later
+          catch (Exception)
+          {
+            // TODO: Create some kind of console logging
+          }
         }
       }
     }

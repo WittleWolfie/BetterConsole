@@ -1,5 +1,4 @@
-﻿using BetterConsole.Mod.IPC;
-using System;
+﻿using System;
 using static UnityModManagerNet.UnityModManager;
 using static UnityModManagerNet.UnityModManager.ModEntry;
 

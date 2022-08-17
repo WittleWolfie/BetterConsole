@@ -30,6 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BetterConsole.Common\BetterConsole.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Main Wrath Assembly, Publicized -->
     <Reference Include="Assembly-CSharp">
       <HintPath>$(SolutionDir)lib\Assembly-CSharp.dll</HintPath>
@@ -74,10 +78,12 @@
   <Target Name="Deploy" AfterTargets="Build">
     <ItemGroup>
       <Assembly Include="$(OutputPath)\$(AssemblyName).dll" />
+      <Common Include="$(OutputPath)\BetterConsole.Common.dll" />
       <ModConfig Include="$(OutputPath)\Info.json" />
     </ItemGroup>
 
     <Copy SourceFiles="@(Assembly)" DestinationFolder="$(WrathPath)\Mods\$(MSBuildProjectName)" />
+    <Copy SourceFiles="@(Common)" DestinationFolder="$(WrathPath)\Mods\$(MSBuildProjectName)" />
     <Copy SourceFiles="@(ModConfig)" DestinationFolder="$(WrathPath)\Mods\$(MSBuildProjectName)" />
   </Target>
 

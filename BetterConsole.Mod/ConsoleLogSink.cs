@@ -2,8 +2,7 @@
 using Kingmaker.Utility;
 using Owlcat.Runtime.Core.Logging;
 using System.Collections.Generic;
-using static BetterConsole.Mod.IPC.Contract;
-using static RootMotion.FinalIK.InteractionObject;
+using static BetterConsole.Common.PipeContract;
 
 namespace BetterConsole.Mod
 {

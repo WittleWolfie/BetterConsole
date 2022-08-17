@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
@@ -8,7 +6,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading;
-using static BetterConsole.Mod.IPC.Contract;
+using static BetterConsole.Common.PipeContract;
 
 namespace BetterConsole.Mod.IPC
 {
@@ -31,12 +29,11 @@ namespace BetterConsole.Mod.IPC
     private static Client _instance;
     public static Client Instance => _instance ??= new();
 
-    private static readonly JsonSerializer Serializer = new();
-
     private bool Enabled;
     private NamedPipeClientStream Stream;
     private Thread Thread;
-    private readonly ConcurrentQueue<LogMessage> LogQueue = new();
+    // Queue of LogMessage serialized to Json
+    private readonly ConcurrentQueue<string> LogQueue = new();
 
     public void Initialize()
     {
@@ -55,7 +52,7 @@ namespace BetterConsole.Mod.IPC
     /// </summary>
     public void ReportLog(LogMessage message)
     {
-      LogQueue.Enqueue(message);
+      LogQueue.Enqueue(JsonConvert.SerializeObject(message));
       if (LogQueue.Count > MaxQueue)
       {
         LogQueue.TryDequeue(out _);
@@ -83,11 +80,10 @@ namespace BetterConsole.Mod.IPC
         try
         {
           Stream?.Dispose();
-          Main.Logger.Log("Initiating mod connection.");
+          Main.Logger.Log("Connecting to BetterConsole.");
           Stream = new(PipeName);
           Stream.Connect();
-
-          Main.Logger.Log("Mod connection established.");
+          Main.Logger.Log("Connection established.");
 
           WriteStream();
         }
@@ -98,7 +94,7 @@ namespace BetterConsole.Mod.IPC
         }
         catch (IOException)
         {
-          Main.Logger.Log("Server died, waiting for its return.");
+          Main.Logger.Log("BetterConsole died, waiting for its return.");
           Thread.Sleep(10000);
         }
         catch (Exception e)
@@ -116,15 +112,14 @@ namespace BetterConsole.Mod.IPC
     /// </summary>
     private void WriteStream()
     {
-      using (var writer = new JsonTextWriter(new StreamWriter(Stream)))
+      using (var writer = new BinaryWriter(Stream))
       {
-        LogMessage message;
         while (Enabled)
         {
           TestConnection(writer);
-          if (LogQueue.Any() && LogQueue.TryDequeue(out message))
+          if (LogQueue.Any() && LogQueue.TryDequeue(out string message))
           {
-            Serializer.Serialize(writer, message);
+            writer.Write(message);
             writer.Flush();
           }
           else
@@ -136,10 +131,10 @@ namespace BetterConsole.Mod.IPC
       }
     }
 
-    private static readonly LogMessage TestMessage = new() { Control = true };
-    private void TestConnection(JsonTextWriter writer)
+    private static readonly string TestMessage =  JsonConvert.SerializeObject(new LogMessage() { Control = true });
+    private void TestConnection(BinaryWriter writer)
     {
-      Serializer.Serialize(writer, TestMessage);
+      writer.Write(TestMessage);
       writer.Flush();
     }
   }
