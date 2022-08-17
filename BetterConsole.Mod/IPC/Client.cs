@@ -1,10 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Threading;
+using static BetterConsole.Mod.IPC.Contract;
 
 namespace BetterConsole.Mod.IPC
 {
@@ -27,15 +31,21 @@ namespace BetterConsole.Mod.IPC
     private static Client _instance;
     public static Client Instance => _instance ??= new();
 
-    private bool Enabled = true;
+    private static readonly JsonSerializer Serializer = new();
+
+    private bool Enabled;
     private NamedPipeClientStream Stream;
     private Thread Thread;
-    private readonly ConcurrentQueue<string> LogQueue = new();
+    private readonly ConcurrentQueue<LogMessage> LogQueue = new();
 
     public void Initialize()
     {
-      if (Stream is not null) { return; }
+      if (Thread is not null)
+      {
+        Dispose();
+      }
 
+      Enabled = true;
       Thread = new Thread(new ThreadStart(InitializeAsync));
       Thread.Start();
     }
@@ -43,9 +53,9 @@ namespace BetterConsole.Mod.IPC
     /// <summary>
     /// Reports a log message which is added to the queue for send.
     /// </summary>
-    public void ReportLog(string text)
+    public void ReportLog(LogMessage message)
     {
-      LogQueue.Enqueue(text);
+      LogQueue.Enqueue(message);
       if (LogQueue.Count > MaxQueue)
       {
         LogQueue.TryDequeue(out _);
@@ -74,23 +84,22 @@ namespace BetterConsole.Mod.IPC
         {
           Stream?.Dispose();
           Main.Logger.Log("Initiating mod connection.");
-          Stream = new(Contract.PipeName);
+          Stream = new(PipeName);
           Stream.Connect();
 
           Main.Logger.Log("Mod connection established.");
-          ReportLog("Mod connection established.");
 
           WriteStream();
         }
         catch (Win32Exception)
         {
           // No server available
-          Thread.Sleep(5000);
+          Thread.Sleep(10000);
         }
         catch (IOException)
         {
           Main.Logger.Log("Server died, waiting for its return.");
-          Thread.Sleep(5000);
+          Thread.Sleep(10000);
         }
         catch (Exception e)
         {
@@ -107,15 +116,17 @@ namespace BetterConsole.Mod.IPC
     /// </summary>
     private void WriteStream()
     {
-      using (var writer = new StreamWriter(Stream))
+      using (var writer = new BsonWriter(Stream))
       {
-        string line = null;
+        LogMessage message;
         while (Enabled)
         {
           TestConnection(writer);
-          if (LogQueue.Any() && LogQueue.TryDequeue(out line))
+          if (LogQueue.Any() && LogQueue.TryDequeue(out message))
           {
-            writer.WriteLine(line);
+            Main.Logger.Log($"Message: {message.Message.FirstOrDefault()} - {message.ChannelName}");
+            Main.Logger.Log(JToken.FromObject(message).ToString());
+            Serializer.Serialize(writer, message);
             writer.Flush();
           }
           else
@@ -127,10 +138,10 @@ namespace BetterConsole.Mod.IPC
       }
     }
 
-    private void TestConnection(StreamWriter writer)
+    private static readonly LogMessage TestMessage = new() { Control = true };
+    private void TestConnection(BsonWriter writer)
     {
-      Main.Logger.Log("Testing server.");
-      writer.WriteLine(Contract.ControlPrefix);
+      Serializer.Serialize(writer, TestMessage);
       writer.Flush();
     }
   }

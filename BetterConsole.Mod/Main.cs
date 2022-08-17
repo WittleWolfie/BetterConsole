@@ -1,5 +1,4 @@
 ﻿using BetterConsole.Mod.IPC;
-using HarmonyLib;
 using System;
 using static UnityModManagerNet.UnityModManager;
 using static UnityModManagerNet.UnityModManager.ModEntry;
@@ -9,8 +8,7 @@ namespace BetterConsole.Mod
   public static class Main
   {
     public static ModLogger Logger;
-
-    private static Harmony Harmony;
+    private static ConsoleLogSink LogSink;
 
     public static bool Load(ModEntry modEntry)
     {
@@ -19,25 +17,22 @@ namespace BetterConsole.Mod
         Logger = modEntry.Logger;
         modEntry.OnUnload = OnUnload;
 
-        Harmony = new Harmony(modEntry.Info.Id);
-        Harmony.PatchAll();
+        LogSink = new();
+        Owlcat.Runtime.Core.Logging.Logger.Instance.AddLogger(LogSink);
 
-        Client.Instance.Initialize();
-        Owlcat.Runtime.Core.Logging.Logger.Instance.AddLogger(new ConsoleLogSink());
-
-        Logger.Log("Finished patching.");
+        Logger.Log("Finished loading.");
       }
       catch (Exception e)
       {
-        Logger.LogException("Failed to patch", e);
+        Logger.LogException("Failed to load", e);
       }
       return true;
     }
 
     private static bool OnUnload(ModEntry modEntry)
     {
-      Client.Instance.Dispose();
-      Harmony.UnpatchAll();
+      LogSink?.Destroy();
+      LogSink = null;
       return true;
     }
   }

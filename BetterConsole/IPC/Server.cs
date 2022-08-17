@@ -1,4 +1,8 @@
-﻿using System.IO.Pipes;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
+using Newtonsoft.Json.Linq;
+using System.IO.Pipes;
+using static BetterConsole.IPC.Contract;
 
 namespace BetterConsole.IPC
 {
@@ -15,6 +19,8 @@ namespace BetterConsole.IPC
   {
     private static Server _instance;
     public static Server Instance => _instance ??= new();
+
+    private static readonly JsonSerializer Serializer = new();
 
     private NamedPipeServerStream Stream;
     private ContentViewModel ViewModel;
@@ -50,21 +56,25 @@ namespace BetterConsole.IPC
 
     private void ReadStream()
     {
-      using (var reader = new StreamReader(Stream))
+      using (var reader = new BsonReader(Stream))
       {
-        string line = null;
+        LogMessage message = new();
         while (Enabled && Stream.IsConnected)
         {
-          line = reader.ReadLine();
-          if (string.IsNullOrEmpty(line))
+          try
           {
-            // Wait for more messages
-            Thread.Sleep(1000);
+            message = Serializer.Deserialize<LogMessage>(reader);
+            if (message.Message is not null && message.Message.Any())
+            {
+              ViewModel.Message = message.Message.First();
+            }
+            else if (!message.Control) // Ignore control messages
+            {
+              // Wait for more messages
+              Thread.Sleep(1000);
+            }
           }
-          else if (!line.StartsWith(Contract.ControlPrefix))
-          {
-            ViewModel.Message = line;
-          }
+          catch (Exception) { } // Squash exceptions for now, may report later
         }
       }
     }

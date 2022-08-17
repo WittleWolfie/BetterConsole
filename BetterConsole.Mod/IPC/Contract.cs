@@ -14,8 +14,14 @@ namespace BetterConsole.Mod.IPC
     public const string PipeName = "BetterConsole.Pipe";
 
     /// <summary>
-    /// Prefix for control commands which should not be logged to the console.
+    /// Struct with log message details. Used to serialize/deserialize JSON.
     /// </summary>
-    public const string ControlPrefix = "CONTROL";
+    public struct LogMessage
+    {
+      public bool Control;
+      public string ChannelName;
+      public string Severity;
+      public List<string> Message;
+    }
   }
 }
