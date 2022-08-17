@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BetterConsole.LogWindow"
+             Title="Better Console">
+  <VerticalStackLayout>
+    <!-- Settings bar -->
+    <HorizontalStackLayout Spacing="10">
+      <Label Text="Message: "
+                   FontSize="14" />
+      <CheckBox x:Name="MessageEnabled"
+                IsChecked="true" />
+
+      <Label Text="Warning: "
+             FontSize="14" />
+      <CheckBox x:Name="WarningEnabled"
+                IsChecked="true" />
+
+      <Label Text="Error: "
+             FontSize="14" />
+      <CheckBox x:Name="ErrorEnabled"
+                IsChecked="true" />
+
+      <Label Text="Suppress Stack Traces: "
+             FontSize="14" />
+      <CheckBox x:Name="SuppressStacks" />
+
+      <Label Text="Channel Filter: "
+             FontSize="14" />
+      <Entry x:Name="ChannelFilter"
+             FontSize="14" />
+
+      <Label Text="Message Filter: "
+             FontSize="14" />
+      <Entry x:Name="MessageFilter"
+             FontSize="14" />
+
+      <!-- TODO: Export to file button -->
+    </HorizontalStackLayout>
+
+    <ListView ItemsSource="{Binding Messages}" VerticalScrollBarVisibilit="Always">
+      <ListView.ItemTemplate>
+        <DataTemplate>
+          <ViewCell>
+            <!-- Log Message: [Timestamp][Severity][Channel][Message] -->
+            <HorizontalStackLayout Margin="20"
+                                   Spacing="10">
+              <Label Text="{Binding Timestamp}"
+                     FontSize="14" />
+
+              <Label Text="{Binding Severity}"
+                     FontSize="14" />
+
+              <Label Text="{Binding Channel}"
+                     FontSize="14" />
+
+              <Label Text="{Binding Message}"
+                     FontSize="14" />
+            </HorizontalStackLayout>
+          </ViewCell>
+        </DataTemplate>
+      </ListView.ItemTemplate>
+    </ListView>
+  </VerticalStackLayout>
+</ContentPage>

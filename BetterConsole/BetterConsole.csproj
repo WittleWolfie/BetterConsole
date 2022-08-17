@@ -49,4 +49,16 @@
     </Reference>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Update="LogWindow.xaml.cs">
+	    <DependentUpon>LogWindow.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="LogWindow.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
 </Project>

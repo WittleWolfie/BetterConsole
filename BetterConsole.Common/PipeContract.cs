@@ -19,10 +19,14 @@ namespace BetterConsole.Common
       public bool Control;
 
       [JsonProperty]
-      public string ChannelName;
+      public string Timestamp;
 
       [JsonProperty]
       public string Severity;
+
+      [JsonProperty]
+      public string ChannelName;
+
 
       [JsonProperty]
       public List<string> Message;

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BetterConsole.ViewModel;
+using Newtonsoft.Json;
 using System.IO.Pipes;
 using static BetterConsole.Common.PipeContract;
 
@@ -21,11 +22,11 @@ namespace BetterConsole.IPC
     private static readonly JsonSerializer Serializer = new();
 
     private NamedPipeServerStream Stream;
-    private ContentViewModel ViewModel;
+    private LogWindowModel ViewModel;
     private Thread Thread;
     private bool Enabled = true;
 
-    public void Initialize(ContentViewModel viewModel)
+    public void Initialize(LogWindowModel viewModel)
     {
       ViewModel = viewModel;
       if (Stream is not null) { return; }
@@ -43,10 +44,10 @@ namespace BetterConsole.IPC
       while (Enabled)
       {
         Stream?.Dispose();
-        ViewModel.Status = "Waiting for client connection.";
+        ViewModel.LogLocal("Waiting for client connection.");
         Stream = new(PipeName);
         Stream.WaitForConnection();
-        ViewModel.Status = "Client connected.";
+        ViewModel.LogLocal("Client connected.");
 
         ReadStream();
       }
@@ -62,20 +63,15 @@ namespace BetterConsole.IPC
           try
           {
             message = JsonConvert.DeserializeObject<LogMessage>(reader.ReadString());
-            if (message.Control)
+            // Ignore control messages
+            if (!message.Control)
             {
-              // Ignore control messages
-              continue;
-            }
-
-            if (message.Message is not null && message.Message.Any())
-            {
-              ViewModel.Message = message.Message.First();
+              ViewModel.LogRemote(message);
             }
           }
-          catch (Exception)
+          catch (Exception e)
           {
-            // TODO: Create some kind of console logging
+            ViewModel.LogLocal($"Exception reading remote logs: {e}");
           }
         }
       }
