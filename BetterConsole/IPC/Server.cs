@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
 using Newtonsoft.Json.Linq;
 using System.IO.Pipes;
 using static BetterConsole.IPC.Contract;
@@ -56,14 +55,18 @@ namespace BetterConsole.IPC
 
     private void ReadStream()
     {
-      using (var reader = new BsonReader(Stream))
+      using (var reader = new StreamReader(Stream))
       {
         LogMessage message = new();
         while (Enabled && Stream.IsConnected)
         {
           try
           {
-            message = Serializer.Deserialize<LogMessage>(reader);
+            var result = reader.ReadLine();
+            if (!string.IsNullOrEmpty(result))
+            {
+              ViewModel.Message = result;
+            }
             if (message.Message is not null && message.Message.Any())
             {
               ViewModel.Message = message.Message.First();

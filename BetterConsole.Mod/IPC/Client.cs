@@ -116,7 +116,7 @@ namespace BetterConsole.Mod.IPC
     /// </summary>
     private void WriteStream()
     {
-      using (var writer = new BsonWriter(Stream))
+      using (var writer = new JsonTextWriter(new StreamWriter(Stream)))
       {
         LogMessage message;
         while (Enabled)
@@ -124,8 +124,6 @@ namespace BetterConsole.Mod.IPC
           TestConnection(writer);
           if (LogQueue.Any() && LogQueue.TryDequeue(out message))
           {
-            Main.Logger.Log($"Message: {message.Message.FirstOrDefault()} - {message.ChannelName}");
-            Main.Logger.Log(JToken.FromObject(message).ToString());
             Serializer.Serialize(writer, message);
             writer.Flush();
           }
@@ -139,7 +137,7 @@ namespace BetterConsole.Mod.IPC
     }
 
     private static readonly LogMessage TestMessage = new() { Control = true };
-    private void TestConnection(BsonWriter writer)
+    private void TestConnection(JsonTextWriter writer)
     {
       Serializer.Serialize(writer, TestMessage);
       writer.Flush();
