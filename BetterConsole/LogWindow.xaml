@@ -38,7 +38,7 @@
       <!-- TODO: Export to file button -->
     </HorizontalStackLayout>
 
-    <ListView ItemsSource="{Binding Messages}" VerticalScrollBarVisibilit="Always">
+    <ListView ItemsSource="{Binding Messages}">
       <ListView.ItemTemplate>
         <DataTemplate>
           <ViewCell>
