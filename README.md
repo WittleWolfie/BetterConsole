@@ -1,2 +1,2 @@
 # BetterConsole
-An improved remote console for reading logs in Pathfinder: Wrath of the Righteous.
+MOVED. Now lives in the WotR Mod Community org: https://github.com/Pathfinder-WOTR-Modding-Community/BetterConsole
